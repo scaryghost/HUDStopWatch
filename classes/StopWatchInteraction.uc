@@ -1,9 +1,14 @@
 class StopWatchInteraction extends Interaction;
 
-var float timer, xPos, yPos;
+var float startTime;
+var float elapsedTime, xPos, yPos;
+
+event NotifyLevelChange(){
+    Master.RemoveInteraction(self);
+}
 
 function Tick (float DeltaTime) {
-    timer+= DeltaTime;
+    elapsedTime= ViewportOwner.Actor.GetEntryLevel().TimeSeconds - startTime;
 }
 
 function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta ) {
@@ -20,7 +25,7 @@ function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta ) {
                 GotoState('Start');
             }
         } else if (alias == class'HSWKeyBinding'.default.KeyData[3].Alias) {
-            timer= 0;
+            elapsedTime= 0;
         }
     }
  
@@ -29,6 +34,7 @@ function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta ) {
 
 state Start {
     function BeginState() {
+        startTime= ViewportOwner.Actor.GetEntryLevel().TimeSeconds;
         bRequiresTick= true;
     }
 
@@ -40,23 +46,23 @@ state Start {
 function PostRender (canvas Canvas) {
     local int min;
     local float sec;
-    local string timerStr;
+    local string elapsedTimeStr;
 
-    min= timer / 60;
-    sec= timer - min;
+    min= elapsedTime / 60;
+    sec= elapsedTime - (min * 60);
     if (min < 10) {
-        timerStr="0";
+        elapsedTimeStr="0";
     }
-    timerStr$= string(min)$":";
+    elapsedTimeStr$= string(min)$":";
     if (sec < 10) {
-        timerStr$= "0";
+        elapsedTimeStr$= "0";
     }
-    timerStr$=sec;
+    elapsedTimeStr$=sec;
 
     Canvas.SetPos(Canvas.SizeX*xPos, Canvas.SizeY*yPos);
     Canvas.Style = 3;
     Canvas.SetDrawColor(0,255,0);
-    Canvas.DrawText(timerStr);
+    Canvas.DrawText(elapsedTimeStr);
 }
 
 defaultproperties {

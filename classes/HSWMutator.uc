@@ -1,31 +1,28 @@
 class HSWMutator extends Mutator;
 
 var bool bHasInteraction;
- 
-function PreBeginPlay()
-{
-	//Log("ICU Mutator Started"); // Always comment out your logs unless they're errors
+
+function PostBeginPlay() {
+    if (KFGameType(Level.Game) == none) {
+        Destroy();
+        return;
+    }
+    
+    AddToPackageMap("HudStopWatch");
 }
  
-simulated function Tick(float DeltaTime)
-{
-	local PlayerController PC;
+simulated function Tick(float DeltaTime) {
+    local PlayerController PC;
  
-	// If the player has an interaction already, exit function.
-	if (bHasInteraction)
-		Return;
-	PC = Level.GetLocalPlayerController();
- 
-	// Run a check to see whether this mutator should create an interaction for the player
-	if ( PC != None)
-	{
-		PC.Player.InteractionMaster.AddInteraction("HUDStopWatch.StopWatchInteraction", PC.Player); // Create the interaction
-		bHasInteraction = True; // Set the variable so this lot isn't called again
-	}
+    PC = Level.GetLocalPlayerController();
+    if (PC != None) { 
+        PC.Player.InteractionMaster.AddInteraction("HUDStopWatch.StopWatchInteraction"
+            ,PC.Player);
+    }
+    Disable('Tick');
 }
  
-DefaultProperties
-{
+defaultproperties {
     GroupName="KFHudStopwatch"
     FriendlyName= "HUD Stopwatch v1.0"
     Description= "Displays a stopwatch on the player's HUD"
