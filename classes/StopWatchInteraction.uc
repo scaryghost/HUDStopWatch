@@ -1,39 +1,30 @@
 class StopWatchInteraction extends Interaction;
 
-var float time, xPos, yPos;
-
-event Initialized() {
-    super.Initialized();
-    GotoState('Stop');
-}
+var float timer, xPos, yPos;
 
 function Tick (float DeltaTime) {
-    time+= DeltaTime;
+    timer+= DeltaTime;
 }
 
 function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta ) {
-    if (Action == IST_Press && Key == IK_Home) {
-        bVisible= !bVisible;
+    local string alias;
+
+    if (Action == IST_Press) {
+        alias= ViewportOwner.Actor.ConsoleCommand("KEYBINDING"@ViewportOwner.Actor.ConsoleCommand("KEYNAME"@Key));
+        if (alias == class'HSWKeyBinding'.default.KeyData[1].Alias) {
+            bVisible= !bVisible;
+        } else if (alias == class'HSWKeyBinding'.default.KeyData[2].Alias) {
+            if (IsInState('Start')) {
+                GotoState('');
+            } else {
+                GotoState('Start');
+            }
+        } else if (alias == class'HSWKeyBinding'.default.KeyData[3].Alias) {
+            timer= 0;
+        }
     }
  
     return false;
-}
-
-auto state Stop {
-    function BeginState() {
-        time= 0;
-    }
-
-    function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta ) {
-        if (Action == IST_Press) {
-            if (Key == IK_End) {
-                GotoState('Start');
-            } else {
-                return Global.KeyEvent(Key, Action, Delta);
-            }
-        }
-        return false;
-    }
 }
 
 state Start {
@@ -41,62 +32,31 @@ state Start {
         bRequiresTick= true;
     }
 
-    function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta ) {
-        if (Action == IST_Press) {
-            if (Key == IK_End) {
-                GotoState('Pause');
-            } else {
-                return Global.KeyEvent(Key, Action, Delta);
-            }
-        }
-        return false;
-    }
-
     function EndState() {
         bRequiresTick= false;
-    }
-}
-
-state Pause {
-    function BeginState() {
-        bRequiresTick= false;
-    }
-
-    function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta ) {
-        if (Action == IST_Press) {
-            if (Key == IK_End) {
-                bRequiresTick= true;
-                GotoState('Start');
-            } else if (Key == IK_Delete) {
-                GotoState('Stop');
-            } else {
-                return Global.KeyEvent(Key, Action, Delta);
-            }
-        }
-        return false;
     }
 }
 
 function PostRender (canvas Canvas) {
     local int min;
     local float sec;
-    local string timeStr;
+    local string timerStr;
 
-    min= time / 60;
-    sec= time - min;
+    min= timer / 60;
+    sec= timer - min;
     if (min < 10) {
-        timeStr="0";
+        timerStr="0";
     }
-    timeStr$= string(min)$":";
+    timerStr$= string(min)$":";
     if (sec < 10) {
-        timeStr$= "0";
+        timerStr$= "0";
     }
-    timeStr$=sec;
+    timerStr$=sec;
 
     Canvas.SetPos(Canvas.SizeX*xPos, Canvas.SizeY*yPos);
     Canvas.Style = 3;
     Canvas.SetDrawColor(0,255,0);
-    Canvas.DrawText(timeStr);
+    Canvas.DrawText(timerStr);
 }
 
 defaultproperties {
